@@ -24,7 +24,7 @@
     <div class="container my-4">
         <form action="/signup" method="post" id="signup">
             <h5 class="question bg-secondary py-5 text-center text-white text-capitalize m-0" id="question"></h5>
-            <div class="question bg-secondary text-left ps-3 py-1 text-white text-capitalize border-top" id="ans"></div>
+            <p class="question bg-secondary text-left ps-3 py-1 text-white text-capitalize border-top" id="ans"></p>
             <div class="mb-3">
                 <!-- <label for="exampleFormControlInput1" class="form-label">Email address</label> -->
                 <input type="email" class="form-control form-control-lg rounded-0 mt-5" id="answer"
@@ -53,14 +53,14 @@
     <script>
         let SHEET_ID = '1uVBvcVMdBf7hq5VO8sRhmo09y5hPMvpU-_En0FoMLwI'
         let SHEET_TITLE = 'Sheet4';
-        let SHEET_RANGE = 'A1:B3'
+        let SHEET_RANGE = 'A1:B30'
 
         let FULL_URL = ('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + SHEET_TITLE + '&range=' + SHEET_RANGE);
 
         function randomIntFromInterval(min, max) { // min and max included 
             return Math.floor(Math.random() * (max - min + 1) + min)
         }
-        
+
         let questionEle = document.getElementById('question');
         let answerEle = document.getElementById('answer');
         let showAnsEle = document.getElementById('ans');
@@ -70,38 +70,62 @@
         var corAud = document.getElementById("correct");
         var worAud = document.getElementById("wrong");
 
+
+
         function nextQuestion(data) {
             let randId = randomIntFromInterval(0, data.table.rows.length - 1);
-            console.log(data.table.rows, randId)
             let question = data.table.rows[randId].c[0].v,
                 ans = data.table.rows[randId].c[1].v;
             questionEle.innerHTML = question;
             showAnsEle.innerHTML = "";
-            answerBtnEle.onclick = function () {
-                showAnsEle.innerHTML = ans;
-                $("#answer").focus();
-            };
-            submitBtnEle.onclick = function () {
-                let userAns = answerEle.value;
-                if (userAns == ans) {
-                    answerEle.style.borderColor = "green";
-                    corAud.play(); 
-                    setTimeout(() => {
-                        nextQuestion(data);
-                        answerEle.value = "";
-                        $("#answer").focus();
-                    }, 1000);
-                } else {
-                    answerEle.style.borderColor = "red";
-                    worAud.play(); 
+
+
+            $.get("https://translate.googleapis.com/translate_a/single?client=gtx&sl=hi&tl=en&hl=en-US&dt=t&dt=bd&dj=1&source=bubble&tk=974058.974058&q=" + question, function (transData, status) {
+                let wordMeanings = [];
+                let translation = transData.sentences[0].trans;
+                console.log("https://translate.googleapis.com/translate_a/single?client=gtx&sl=hi&tl=en&hl=en-US&dt=t&dt=bd&dj=1&source=bubble&tk=974058.974058&q=" + question ,transData);
+                transData.dict.map(d => {
+                    d.terms.map(d1 => {
+                        if (wordMeanings.indexOf(d1) === -1) {
+                            wordMeanings.push(d1)
+                        }
+                    })
+                })
+                // Custom Answer push in wordMeaings;
+                if (wordMeanings.indexOf(ans.toLowerCase()) === -1) {
+                    wordMeanings.push(ans.toLowerCase());
                 }
-            };
-            skipBtnEle.onclick = function () {
-                answerEle.style.borderColor = "gray";
-                answerEle.value = "";
-                nextQuestion(data)
-                $("#answer").focus();
-            };
+
+                answerBtnEle.onclick = function () {
+                    const showAns = wordMeanings.reduce((accumulator, currentValue) => accumulator + ", " + currentValue);
+                    showAnsEle.innerHTML += "<b>"+translation+"</b>"+", ";
+                    showAnsEle.innerHTML += showAns;
+                    $("#answer").focus();
+                };
+
+                submitBtnEle.onclick = function () {
+                    let userAns = answerEle.value.toLowerCase();
+                    if (wordMeanings.indexOf(userAns) > -1) {
+                        answerEle.style.borderColor = "green";
+                        corAud.play();
+                        setTimeout(() => {
+                            nextQuestion(data);
+                            answerEle.value = "";
+                        }, 1000);
+                    } else {
+                        answerEle.style.borderColor = "red";
+                        worAud.play();
+                    }
+                    $("#answer").focus();
+                };
+
+                skipBtnEle.onclick = function () {
+                    answerEle.style.borderColor = "gray";
+                    answerEle.value = "";
+                    nextQuestion(data)
+                    $("#answer").focus();
+                };
+            });
         }
 
         fetch(FULL_URL)
@@ -109,6 +133,16 @@
             .then(rep => {
                 let data = JSON.parse(rep.substr(47).slice(0, -2));
                 nextQuestion(data);
+                // Execute a function when the user presses a key on the keyboard
+                answerEle.addEventListener("keypress", function (event) {
+                    // If the user presses the "Enter" key on the keyboard
+                    if (event.key === "Enter") {
+                        // Cancel the default action, if needed
+                        event.preventDefault();
+                        // Trigger the button element with a click
+                        submitBtnEle.click();
+                    }
+                });
 
 
             })
