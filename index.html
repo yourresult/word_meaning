@@ -5,147 +5,69 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Word Meaning Learning app</title>
+    <title>Home</title>
     <!-- CSS only -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
     <style>
-        .form-control:focus {
-            border-color: transparent;
-            box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
-        }
+
     </style>
 </head>
 
 <body>
-    <div class="row bg-primary" style="height: 10%">
-        <p class="my-auto p-2 ps-2 text-center text-white">Word Meaning Learning</p>
+    <div class="container-fluid bg-primary">
+        <nav class="navbar navbar-dark bg-primary">
+            <a class="navbar-brand" href="/index.html">
+                <img src="https://getbootstrap.com/docs/4.2/assets/brand/bootstrap-solid.svg" width="30" height="30"
+                    class="d-inline-block align-top" alt="">
+                Home
+            </a>
+        </nav>
     </div>
     <div class="container my-4">
-        <form action="/signup" method="post" id="signup">
-            <h5 class="question bg-secondary py-5 text-center text-white text-capitalize m-0" id="question"></h5>
-            <p class="question bg-secondary text-left ps-3 py-1 text-white text-capitalize border-top" id="ans"></p>
-            <div class="mb-3">
-                <!-- <label for="exampleFormControlInput1" class="form-label">Email address</label> -->
-                <input type="email" class="form-control form-control-lg rounded-0 mt-5" id="answer"
-                    placeholder="Answer...">
+        <div class="row">
+            <div class="col-md-6 col-sm-12 mb-4">
+                <div class="list-group word_meaning">
+                    <div href="#" class="text-center list-group-item list-group-item-action active">
+                        Word Meanings
+                    </div>
+                </div>
             </div>
-            <div class="container d-flex flex-row-reverse my-4">
-                <button type="button" class="btn btn-outline-success ms-2" id="submitBtn">Submit</button>
-                <button type="button" class="btn btn-outline-success ms-2" id="answerBtn">Answer</button>
-                <button type="button" class="btn btn-outline-success ms-2" id="skipBtn">Skip</button>
+            <div class="col-md-6 col-sm-12">
+                <div class="list-group translation">
+                    <a href="#" class="text-center list-group-item list-group-item-action active">
+                        Translation
+                    </a>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
-    <audio id="correct">
-        <source src="correct.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
-    <audio id="wrong">
-        <source src="wrong.mp3" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
     <!-- JavaScript Bundle with Popper -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
         crossorigin="anonymous"></script>
     <script>
-        let SHEET_ID = '1uVBvcVMdBf7hq5VO8sRhmo09y5hPMvpU-_En0FoMLwI'
-        let SHEET_TITLE = 'Sheet4';
-        let SHEET_RANGE = 'A1:B30'
-
-        let FULL_URL = ('https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + SHEET_TITLE + '&range=' + SHEET_RANGE);
-
-        function randomIntFromInterval(min, max) { // min and max included 
-            return Math.floor(Math.random() * (max - min + 1) + min)
+        let config = {
+            "word_meaning": {
+                "name": "Word Meaning",
+                "titles": ["Word Meanings 1"],
+                "sheet_range": ["A1:B30"],
+                "sheet_title": "Sheet4"
+            },
+            "sentences": {
+                "name": "Sentence",
+                "titles": ["Present Tense", "Past Tense"],
+                "sheet_range": ["A1:B10", "A11:B20"],
+                "sheet_title": "Sheet5"
+            }
         }
-
-        let questionEle = document.getElementById('question');
-        let answerEle = document.getElementById('answer');
-        let showAnsEle = document.getElementById('ans');
-        let submitBtnEle = document.getElementById('submitBtn');
-        let answerBtnEle = document.getElementById('answerBtn');
-        let skipBtnEle = document.getElementById('skipBtn');
-        var corAud = document.getElementById("correct");
-        var worAud = document.getElementById("wrong");
-
-
-
-        function nextQuestion(data) {
-            let randId = randomIntFromInterval(0, data.table.rows.length - 1);
-            let question = data.table.rows[randId].c[0].v,
-                ans = data.table.rows[randId].c[1].v;
-            questionEle.innerHTML = question;
-            showAnsEle.innerHTML = "";
-
-
-            $.get("https://translate.googleapis.com/translate_a/single?client=gtx&sl=hi&tl=en&hl=en-US&dt=t&dt=bd&dj=1&source=bubble&tk=974058.974058&q=" + question, function (transData, status) {
-                let wordMeanings = [];
-                let translation = transData.sentences[0].trans;
-                console.log("https://translate.googleapis.com/translate_a/single?client=gtx&sl=hi&tl=en&hl=en-US&dt=t&dt=bd&dj=1&source=bubble&tk=974058.974058&q=" + question ,transData);
-                transData.dict.map(d => {
-                    d.terms.map(d1 => {
-                        if (wordMeanings.indexOf(d1) === -1) {
-                            wordMeanings.push(d1)
-                        }
-                    })
-                })
-                // Custom Answer push in wordMeaings;
-                if (wordMeanings.indexOf(ans.toLowerCase()) === -1) {
-                    wordMeanings.push(ans.toLowerCase());
-                }
-
-                answerBtnEle.onclick = function () {
-                    const showAns = wordMeanings.reduce((accumulator, currentValue) => accumulator + ", " + currentValue);
-                    showAnsEle.innerHTML += "<b>"+translation+"</b>"+", ";
-                    showAnsEle.innerHTML += showAns;
-                    $("#answer").focus();
-                };
-
-                submitBtnEle.onclick = function () {
-                    let userAns = answerEle.value.toLowerCase();
-                    if (wordMeanings.indexOf(userAns) > -1) {
-                        answerEle.style.borderColor = "green";
-                        corAud.play();
-                        setTimeout(() => {
-                            nextQuestion(data);
-                            answerEle.value = "";
-                        }, 1000);
-                    } else {
-                        answerEle.style.borderColor = "red";
-                        worAud.play();
-                    }
-                    $("#answer").focus();
-                };
-
-                skipBtnEle.onclick = function () {
-                    answerEle.style.borderColor = "gray";
-                    answerEle.value = "";
-                    nextQuestion(data)
-                    $("#answer").focus();
-                };
-            });
-        }
-
-        fetch(FULL_URL)
-            .then(res => res.text())
-            .then(rep => {
-                let data = JSON.parse(rep.substr(47).slice(0, -2));
-                nextQuestion(data);
-                // Execute a function when the user presses a key on the keyboard
-                answerEle.addEventListener("keypress", function (event) {
-                    // If the user presses the "Enter" key on the keyboard
-                    if (event.key === "Enter") {
-                        // Cancel the default action, if needed
-                        event.preventDefault();
-                        // Trigger the button element with a click
-                        submitBtnEle.click();
-                    }
-                });
-
-
-            })
+        config.word_meaning.titles.forEach((v,i) => {
+            $(".word_meaning").append('<a href="https://yourresult-bug-free-space-spoon-7wjrvxwp4pj3p7w4-5501.preview.app.github.dev/wordMeaning.html?id='+ i +'" class="list-group-item list-group-item-action">'+ v +'</a>')
+        })
+        config.sentences.titles.forEach((v,i) => {
+            $(".translation").append('<a href="https://yourresult-bug-free-space-spoon-7wjrvxwp4pj3p7w4-5501.preview.app.github.dev/sentance.html?id='+ i +'" class="list-group-item list-group-item-action">'+ v +'</a>')
+        })
     </script>
 
 </body>
