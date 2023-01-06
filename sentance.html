@@ -97,38 +97,100 @@
 
 
 
-        function nextQuestion(questions) {
-            // let randId = randomIntFromInterval(0, data.table.rows.length - 1);
+        // function nextQuestion(questions) {
+        //     // let randId = randomIntFromInterval(0, data.table.rows.length - 1);
+        //     questionEle.innerHTML = question;
+        //     showAnsEle.innerHTML = "";
+
+
+        //     $.get("https://translate.googleapis.com/translate_a/single?client=gtx&sl=hi&tl=en&hl=en-US&dt=t&dt=bd&dj=1&source=bubble&tk=974058.974058&q=" + question, function (transData, status) {
+        //         let wordMeanings = [];
+        //         let translation = transData.sentences[0].trans;
+        //         console.log("https://translate.googleapis.com/translate_a/single?client=gtx&sl=hi&tl=en&hl=en-US&dt=t&dt=bd&dj=1&source=bubble&tk=974058.974058&q=" + question, transData);
+        //         // try {
+        //         //     transData.dict.map(d => {
+        //         //         d.terms.map(d1 => {
+        //         //             if (wordMeanings.indexOf(d1) === -1) {
+        //         //                 wordMeanings.push(d1)
+        //         //             }
+        //         //         })
+        //         //     })
+        //         // } catch (error) {
+        //         //     console.log(error)
+        //         // }
+
+        //         // Custom Answer push in wordMeaings;
+        //         if (wordMeanings.indexOf(ans.toLowerCase()) === -1) {
+        //             wordMeanings.push(ans.toLowerCase());
+        //         }
+        //         if (wordMeanings.indexOf(translation.toLowerCase()) === -1) {
+        //             wordMeanings.push(translation.toLowerCase());
+        //         }
+
+        //         answerBtnEle.onclick = function () {
+        //             const showAns = wordMeanings.reduce((accumulator, currentValue) => accumulator + ", " + currentValue);
+        //             showAnsEle.innerHTML += translation;
+        //             // showAnsEle.innerHTML += showAns;
+        //             $("#answer").focus();
+        //         };
+
+        //         submitBtnEle.onclick = function () {
+        //             let userAns = answerEle.value.toLowerCase();
+        //             if (wordMeanings.indexOf(userAns) > -1) {
+        //                 answerEle.style.borderColor = "green";
+        //                 corAud.play();
+        //                 setTimeout(() => {
+        //                     nextQuestion(data);
+        //                     answerEle.value = "";
+        //                 }, 1000);
+        //             } else {
+        //                 answerEle.style.borderColor = "red";
+        //                 worAud.play();
+        //             }
+        //             $("#answer").focus();
+        //         };
+
+        //         skipBtnEle.onclick = function () {
+        //             answerEle.style.borderColor = "gray";
+        //             answerEle.value = "";
+        //             nextQuestion(data)
+        //             $("#answer").focus();
+        //         };
+        //     });
+        // }
+
+        let activeQuestion = 0;
+        function nextQuestion(questions = []) {
+            const question = questions[activeQuestion].c[0].v,
+            ans = questions[activeQuestion].c[1].v;
             questionEle.innerHTML = question;
             showAnsEle.innerHTML = "";
 
-
             $.get("https://translate.googleapis.com/translate_a/single?client=gtx&sl=hi&tl=en&hl=en-US&dt=t&dt=bd&dj=1&source=bubble&tk=974058.974058&q=" + question, function (transData, status) {
-                let wordMeanings = [];
+                const answer = []
                 let translation = transData.sentences[0].trans;
-                console.log("https://translate.googleapis.com/translate_a/single?client=gtx&sl=hi&tl=en&hl=en-US&dt=t&dt=bd&dj=1&source=bubble&tk=974058.974058&q=" + question, transData);
-                // try {
-                //     transData.dict.map(d => {
-                //         d.terms.map(d1 => {
-                //             if (wordMeanings.indexOf(d1) === -1) {
-                //                 wordMeanings.push(d1)
-                //             }
-                //         })
-                //     })
-                // } catch (error) {
-                //     console.log(error)
-                // }
 
-                // Custom Answer push in wordMeaings;
-                if (wordMeanings.indexOf(ans.toLowerCase()) === -1) {
-                    wordMeanings.push(ans.toLowerCase());
+                try {
+                    transData.dict.map(d => {
+                        d.terms.map(d1 => {
+                            if (answer.indexOf(d1) === -1) {
+                                answer.push(d1)
+                            }
+                        })
+                    })
+                } catch (error) {
+                    console.log(error)
                 }
-                if (wordMeanings.indexOf(translation.toLowerCase()) === -1) {
-                    wordMeanings.push(translation.toLowerCase());
+
+                if (answer.indexOf(ans.toLowerCase()) === -1) {
+                    answer.push(ans.toLowerCase());
+                }
+                if (answer.indexOf(translation.toLowerCase()) === -1) {
+                    answer.push(translation.toLowerCase());
                 }
 
                 answerBtnEle.onclick = function () {
-                    const showAns = wordMeanings.reduce((accumulator, currentValue) => accumulator + ", " + currentValue);
+                    const showAns = answer.reduce((accumulator, currentValue) => accumulator + ", " + currentValue);
                     showAnsEle.innerHTML += translation;
                     // showAnsEle.innerHTML += showAns;
                     $("#answer").focus();
@@ -136,11 +198,12 @@
 
                 submitBtnEle.onclick = function () {
                     let userAns = answerEle.value.toLowerCase();
-                    if (wordMeanings.indexOf(userAns) > -1) {
+                    if (answer.indexOf(userAns) > -1) {
                         answerEle.style.borderColor = "green";
                         corAud.play();
                         setTimeout(() => {
-                            nextQuestion(data);
+                            activeQuestion++;
+                            nextQuestion(questions);
                             answerEle.value = "";
                         }, 1000);
                     } else {
@@ -153,10 +216,11 @@
                 skipBtnEle.onclick = function () {
                     answerEle.style.borderColor = "gray";
                     answerEle.value = "";
-                    nextQuestion(data)
+                    activeQuestion++;
+                    nextQuestion(questions)
                     $("#answer").focus();
                 };
-            });
+            })
         }
 
         fetch(FULL_URL)
@@ -169,7 +233,8 @@
                 }
 
                 let questions = shuffle(data.table.rows);
-                console.log(questions)
+                console.log(questions, "que")
+                nextQuestion(questions);
                 // nextQuestion(questions);
                 // Execute a function when the user presses a key on the keyboard
                 answerEle.addEventListener("keypress", function (event) {
