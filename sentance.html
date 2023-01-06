@@ -97,10 +97,8 @@
 
 
 
-        function nextQuestion(data) {
-            let randId = randomIntFromInterval(0, data.table.rows.length - 1);
-            let question = data.table.rows[randId].c[0].v,
-                ans = data.table.rows[randId].c[1].v;
+        function nextQuestion(questions) {
+            // let randId = randomIntFromInterval(0, data.table.rows.length - 1);
             questionEle.innerHTML = question;
             showAnsEle.innerHTML = "";
 
@@ -165,7 +163,14 @@
             .then(res => res.text())
             .then(rep => {
                 let data = JSON.parse(rep.substr(47).slice(0, -2));
-                nextQuestion(data);
+
+                function shuffle(array) {
+                    return array.sort(() => Math.random() - 0.5);
+                }
+
+                let questions = shuffle(data.table.rows);
+                console.log(questions)
+                // nextQuestion(questions);
                 // Execute a function when the user presses a key on the keyboard
                 answerEle.addEventListener("keypress", function (event) {
                     // If the user presses the "Enter" key on the keyboard
